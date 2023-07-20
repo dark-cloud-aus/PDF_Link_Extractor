@@ -1,0 +1,38 @@
+# PDF URL link extractor by David Gilmore (aka Dark Cloud), created July 2023, V2.1
+
+import PyPDF4
+import re
+
+def find_urls(string):
+    # Find all the Strings that match the pattern
+    regex = r"(https?://\S+)"
+    urls = re.findall(regex, string)
+    return urls
+
+# Open the PDF file
+file_path = "file.pdf"
+file = open(file_path, 'rb')
+pdf_reader = PyPDF4.PdfFileReader(file)
+
+# Iterating over all the pages of the file
+for page_no in range(pdf_reader.numPages):
+    page = pdf_reader.getPage(page_no)
+    # Extract the text from the page
+    text = page.extractText()
+    # Print all URLs on this page
+    urls_on_page = find_urls(text)
+    for url in urls_on_page:
+        print(url)
+
+    # Find and print all URLs in annotations
+    annotations = page.get('/Annots')
+    if annotations:
+        for annotation in annotations:
+            annotation_object = annotation.getObject()
+            if annotation_object.get('/Subtype') == '/Link':
+                if annotation_object.get('/A') and annotation_object['/A'].get('/URI'):
+                    url = annotation_object['/A']['/URI']
+                    print(url)
+
+# Close the file
+file.close()
